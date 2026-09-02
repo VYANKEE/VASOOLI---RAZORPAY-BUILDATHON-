@@ -9,7 +9,7 @@
 // plain code specifically so they can never be talked out of by a model.
 
 const NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-const DEFAULT_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.3-70b-instruct";
+const DEFAULT_MODEL = process.env.NVIDIA_MODEL || "meta/llama-3.1-70b-instruct";
 
 export function llmEnabled() {
   return Boolean(process.env.NVIDIA_API_KEY);

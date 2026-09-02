@@ -152,7 +152,8 @@ Get a free key at **[build.nvidia.com](https://build.nvidia.com)** — open any 
 
 ```
 NVIDIA_API_KEY=nvapi-your-key-here
-NVIDIA_MODEL=meta/llama-3.3-70b-instruct   # optional, this is the default
+NVIDIA_MODEL=meta/llama-3.1-70b-instruct   # optional, this is the default — swap for
+                                            # any model ID your build.nvidia.com account has access to
 ```
 
 With no key set, the pipeline runs entirely on the deterministic rule engine — same audit trail shape, same guarantees, just without live model calls. The dashboard's top-right badge always shows which mode produced the current run ("AI-Live · model-name" or "Rule Engine (no LLM key)"), and every audit entry is individually tagged `agent_source: "llm" | "rule_engine"` so a judge can see exactly which cases used which path.
