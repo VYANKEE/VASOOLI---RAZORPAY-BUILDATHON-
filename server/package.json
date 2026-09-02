@@ -1,0 +1,18 @@
+{
+  "name": "recovery-agent-backend",
+  "version": "1.0.0",
+  "description": "Recovery Agent backend - detects revenue-at-risk from failed payments, diagnoses root cause, decides & simulates a bounded recovery action, and writes a full audit trail.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "generate": "node src/generateDataset.js",
+    "run-pipeline": "node src/pipeline.js",
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "build": "npm run generate && npm run run-pipeline"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "generated_at": "2026-09-02T08:58:59.783Z",
+  "total_cases": 92,
+  "total_at_risk_inr": 371076,
+  "total_recovered_inr": 314824,
+  "total_unrecovered_inr": 56252,
+  "recovery_rate_pct": 78.26,
+  "recovery_rate_of_acted_pct": 87.8,
+  "false_action_rate_pct": 10.87,
+  "avg_time_to_recovery_hours": 9.22,
+  "cases_recovered": 72,
+  "cases_no_action": 10,
+  "cases_escalated_pending": 10,
+  "cases_unresolved": 0,
+  "total_attempts_made": 166,
+  "avg_attempts_per_case": 1.8,
+  "failure_reason_breakdown": [
+    {
+      "failure_reason": "otp_failed",
+      "total_cases": 16,
+      "recovered_cases": 14,
+      "total_at_risk_inr": 51892,
+      "total_recovered_inr": 50744,
+      "recovery_rate_pct": 87.5
+    },
+    {
+      "failure_reason": "card_declined",
+      "total_cases": 21,
+      "recovered_cases": 16,
+      "total_at_risk_inr": 50148,
+      "total_recovered_inr": 33129,
+      "recovery_rate_pct": 76.2
+    },
+    {
+      "failure_reason": "checkout_timeout",
+      "total_cases": 16,
+      "recovered_cases": 14,
+      "total_at_risk_inr": 49924,
+      "total_recovered_inr": 46864,
+      "recovery_rate_pct": 87.5
+    },
+    {
+      "failure_reason": "network_error",
+      "total_cases": 10,
+      "recovered_cases": 8,
+      "total_at_risk_inr": 21278,
+      "total_recovered_inr": 16428,
+      "recovery_rate_pct": 80
+    },
+    {
+      "failure_reason": "insufficient_funds",
+      "total_cases": 23,
+      "recovered_cases": 15,
+      "total_at_risk_inr": 148247,
+      "total_recovered_inr": 119071,
+      "recovery_rate_pct": 65.2
+    },
+    {
+      "failure_reason": "bank_server_down",
+      "total_cases": 6,
+      "recovered_cases": 5,
+      "total_at_risk_inr": 49587,
+      "total_recovered_inr": 48588,
+      "recovery_rate_pct": 83.3
+    }
+  ],
+  "action_breakdown": [
+    {
+      "action": "retry_payment_link",
+      "attempts": 55,
+      "converted": 28,
+      "conversion_rate_pct": 50.9
+    },
+    {
+      "action": "reminder_nudge",
+      "attempts": 73,
+      "converted": 31,
+      "conversion_rate_pct": 42.5
+    },
+    {
+      "action": "escalate_to_human",
+      "attempts": 15,
+      "converted": 5,
+      "conversion_rate_pct": 33.3
+    },
+    {
+      "action": "no_action_needed",
+      "attempts": 10,
+      "converted": 0,
+      "conversion_rate_pct": 0
+    },
+    {
+      "action": "discount_offer",
+      "attempts": 13,
+      "converted": 8,
+      "conversion_rate_pct": 61.5
+    }
+  ],
+  "severity_breakdown": [
+    {
+      "severity": "low",
+      "cases": 18,
+      "recovered": 12,
+      "at_risk_inr": 13970,
+      "recovered_inr": 8790
+    },
+    {
+      "severity": "medium",
+      "cases": 38,
+      "recovered": 30,
+      "at_risk_inr": 172236,
+      "recovered_inr": 146859
+    },
+    {
+      "severity": "high",
+      "cases": 36,
+      "recovered": 30,
+      "at_risk_inr": 184870,
+      "recovered_inr": 159175
+    }
+  ]
+}
