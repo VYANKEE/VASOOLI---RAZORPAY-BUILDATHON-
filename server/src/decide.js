@@ -10,18 +10,10 @@
 //   5. If attempts are exhausted without recovery, the case is escalated
 //      to a human or closed — the agent never "guesses" indefinitely.
 
-export const MAX_ATTEMPTS = 3;
-export const MIN_ACTIONABLE_AMOUNT = 200; // below this, cost of intervention isn't worth it
-export const DISCOUNT_MIN_AMOUNT = 500; // discounts only offered above this value
-export const MAX_DISCOUNT_PCT = 15;
-
-export const ACTIONS = {
-  RETRY_LINK: "retry_payment_link",
-  REMINDER: "reminder_nudge",
-  DISCOUNT: "discount_offer",
-  ESCALATE: "escalate_to_human",
-  NO_ACTION: "no_action_needed",
-};
+// Shared with the LLM path so both engines are bounded by the exact same
+// numbers — see policy.js for why these live in one place.
+import { MAX_ATTEMPTS, MIN_ACTIONABLE_AMOUNT, DISCOUNT_MIN_AMOUNT, MAX_DISCOUNT_PCT, ACTIONS } from "./policy.js";
+export { MAX_ATTEMPTS, MIN_ACTIONABLE_AMOUNT, DISCOUNT_MIN_AMOUNT, MAX_DISCOUNT_PCT, ACTIONS };
 
 /**
  * Decide the next recovery action for a transaction, given classification

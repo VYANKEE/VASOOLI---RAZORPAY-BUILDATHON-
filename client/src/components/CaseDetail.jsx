@@ -142,18 +142,35 @@ function AuditEntryCard({ entry }) {
         background: "var(--bg)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
         <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--accent-strong)" }}>
           Attempt {entry.attempt_number} · {ACTION_LABELS[entry.decision.action] || entry.decision.action}
         </span>
-        <Badge label={entry.outcome.status.replace(/_/g, " ")} tone={OUTCOME_TONE[entry.outcome.status] || "slate"} />
+        <div style={{ display: "flex", gap: 6 }}>
+          <Badge label={entry.agent_source === "llm" ? "AI reasoning" : "Rule engine"} tone={entry.agent_source === "llm" ? "green" : "slate"} />
+          <Badge label={entry.outcome.status.replace(/_/g, " ")} tone={OUTCOME_TONE[entry.outcome.status] || "slate"} />
+        </div>
       </div>
 
-      <DetailRow label="Classification">{entry.classification.reasoning}</DetailRow>
+      {entry.agent_source !== "llm" && entry.fallback_reason && (
+        <DetailRow label="Fallback reason">
+          <span style={{ color: "var(--amber)" }}>{entry.fallback_reason}</span>
+        </DetailRow>
+      )}
+
+      <DetailRow label="Diagnosis">{entry.classification.reasoning}</DetailRow>
+
+      {entry.llm_proposed_action && entry.llm_proposed_action !== entry.decision.action && (
+        <DetailRow label="AI proposed">
+          <span className="mono" style={{ fontSize: 11.5 }}>{entry.llm_proposed_action}</span> — overridden by policy below
+        </DetailRow>
+      )}
+
       <DetailRow label="Decision">{entry.decision.reasoning}</DetailRow>
-      {entry.decision.bounded_by && (
-        <DetailRow label="Guardrail">
-          <span className="mono" style={{ fontSize: 11.5 }}>{entry.decision.bounded_by}</span>
+
+      {entry.decision.overridden_by_policy && (
+        <DetailRow label="Policy guardrail (overrode the AI's proposal)">
+          <span className="mono" style={{ fontSize: 11.5, color: "var(--amber)" }}>{entry.decision.override_reason}</span>
         </DetailRow>
       )}
       <DetailRow label="Message sent">

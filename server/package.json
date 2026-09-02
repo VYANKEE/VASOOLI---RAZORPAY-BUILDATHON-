@@ -7,9 +7,10 @@
   "scripts": {
     "generate": "node src/generateDataset.js",
     "run-pipeline": "node src/pipeline.js",
+    "eval": "node src/evals.js",
     "start": "node src/server.js",
     "dev": "node src/server.js",
-    "build": "npm run generate && npm run run-pipeline"
+    "build": "npm run generate && npm run run-pipeline && npm run eval"
   },
   "dependencies": {
     "cors": "^2.8.5",

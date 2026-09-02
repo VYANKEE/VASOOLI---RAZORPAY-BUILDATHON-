@@ -63,7 +63,14 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <TopBar onRerun={handleRerun} rerunning={rerunning} generatedAt={metrics?.generated_at} />
+      <TopBar
+        onRerun={handleRerun}
+        rerunning={rerunning}
+        generatedAt={metrics?.generated_at}
+        llmEnabled={metrics?.llm_enabled}
+        llmModel={metrics?.llm_model}
+        llmFallbackCount={metrics?.llm_fallback_count}
+      />
 
       <main style={{ maxWidth: 1240, margin: "0 auto", padding: "22px 24px 60px" }}>
         <section
@@ -138,7 +145,7 @@ export default function App() {
   );
 }
 
-function TopBar({ onRerun, rerunning, generatedAt }) {
+function TopBar({ onRerun, rerunning, generatedAt, llmEnabled, llmModel, llmFallbackCount }) {
   return (
     <header
       style={{
@@ -150,7 +157,7 @@ function TopBar({ onRerun, rerunning, generatedAt }) {
         padding: "14px 24px",
       }}
     >
-      <div style={{ maxWidth: 1240, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
@@ -175,6 +182,7 @@ function TopBar({ onRerun, rerunning, generatedAt }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <LLMStatusBadge enabled={llmEnabled} model={llmModel} fallbackCount={llmFallbackCount} />
           {generatedAt && (
             <span style={{ fontSize: 11.5, color: "var(--text-tertiary)" }}>
               Last run: {new Date(generatedAt).toLocaleTimeString("en-IN")}
@@ -199,6 +207,36 @@ function TopBar({ onRerun, rerunning, generatedAt }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function LLMStatusBadge({ enabled, model, fallbackCount }) {
+  if (enabled === undefined) return null;
+  const tone = enabled ? "var(--green)" : "var(--slate)";
+  const bg = enabled ? "var(--green-soft)" : "var(--slate-soft)";
+  return (
+    <div
+      title={
+        enabled
+          ? `Live LLM reasoning via NVIDIA NIM (${model}). ${fallbackCount ? `${fallbackCount} attempt(s) fell back to the rule engine.` : ""}`
+          : "NVIDIA_API_KEY not set — running on the deterministic rule engine. Set it in server/.env to enable live LLM reasoning."
+      }
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "5px 10px",
+        borderRadius: 999,
+        background: bg,
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: tone,
+        cursor: "default",
+      }}
+    >
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone }} />
+      {enabled ? `AI-Live · ${model}` : "Rule Engine (no LLM key)"}
+    </div>
   );
 }
 

@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-09-02T09:13:47.633Z",
+  "total_checks": 11,
+  "passed": 11,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "No case exceeds MAX_ATTEMPTS",
+      "pass": true,
+      "detail": "0 case(s) exceeded 3 attempts"
+    },
+    {
+      "name": "No back-to-back repeated action (no-spam)",
+      "pass": true,
+      "detail": "0 repeat violation(s)"
+    },
+    {
+      "name": "Discount never exceeds cap",
+      "pass": true,
+      "detail": "0 case(s) over 15%"
+    },
+    {
+      "name": "Discount never below amount floor",
+      "pass": true,
+      "detail": "0 case(s) under ₹500"
+    },
+    {
+      "name": "Discount never offered twice on the same case",
+      "pass": true,
+      "detail": "0 case(s) with 2+ discounts"
+    },
+    {
+      "name": "Every audit entry has decision reasoning",
+      "pass": true,
+      "detail": "0 missing"
+    },
+    {
+      "name": "Every audit entry has a message/internal note",
+      "pass": true,
+      "detail": "0 missing"
+    },
+    {
+      "name": "No case recovers more than its own at-risk amount",
+      "pass": true,
+      "detail": "0 violation(s)"
+    },
+    {
+      "name": "Total recovered <= total at risk",
+      "pass": true,
+      "detail": "₹314824 recovered vs ₹371076 at risk"
+    },
+    {
+      "name": "No-action cases never show recovered amount",
+      "pass": true,
+      "detail": "0 case(s)"
+    },
+    {
+      "name": "Escalations only occur after a real attempt was made",
+      "pass": true,
+      "detail": "0 case(s)"
+    }
+  ]
+}

@@ -3,29 +3,51 @@
 // pipeline once (fresh audit trail + metrics), then serves everything
 // from memory. POST /api/run re-runs the pipeline on demand.
 
+import "./env.js";
 import express from "express";
 import cors from "cors";
 import { runPipeline } from "./pipeline.js";
+import { llmEnabled, DEFAULT_MODEL } from "./llmClient.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 let state = { auditEntries: [], caseSummaries: [], metrics: null };
+let pipelineRunning = false;
 
-function refresh() {
-  state = runPipeline();
+async function refresh() {
+  pipelineRunning = true;
+  try {
+    state = await runPipeline();
+  } finally {
+    pipelineRunning = false;
+  }
 }
 
-refresh();
-
-app.get("/api/health", (req, res) => {
-  res.json({ ok: true, cases: state.caseSummaries.length, generated_at: state.metrics?.generated_at });
+const bootPromise = refresh().catch((err) => {
+  console.error("Initial pipeline run failed:", err);
 });
 
-app.post("/api/run", (req, res) => {
-  refresh();
-  res.json({ ok: true, metrics: state.metrics });
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    running: pipelineRunning,
+    cases: state.caseSummaries.length,
+    generated_at: state.metrics?.generated_at,
+    llm_enabled: llmEnabled(),
+    llm_model: llmEnabled() ? DEFAULT_MODEL : null,
+  });
+});
+
+app.post("/api/run", async (req, res) => {
+  if (pipelineRunning) return res.status(409).json({ ok: false, error: "pipeline_already_running" });
+  try {
+    await refresh();
+    res.json({ ok: true, metrics: state.metrics });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err.message || err) });
+  }
 });
 
 app.get("/api/metrics", (req, res) => {
@@ -67,6 +89,8 @@ app.get("/api/audit", (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Recovery Agent API listening on http://localhost:${PORT}`);
+bootPromise.finally(() => {
+  app.listen(PORT, () => {
+    console.log(`Recovery Agent API listening on http://localhost:${PORT}`);
+  });
 });

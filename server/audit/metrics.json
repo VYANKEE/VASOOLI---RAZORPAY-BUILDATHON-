@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T08:58:59.783Z",
+  "generated_at": "2026-09-02T09:14:58.121Z",
   "total_cases": 92,
   "total_at_risk_inr": 371076,
   "total_recovered_inr": 314824,
@@ -118,5 +118,8 @@
       "at_risk_inr": 184870,
       "recovered_inr": 159175
     }
-  ]
+  ],
+  "llm_enabled": false,
+  "llm_model": null,
+  "llm_fallback_count": 0
 }

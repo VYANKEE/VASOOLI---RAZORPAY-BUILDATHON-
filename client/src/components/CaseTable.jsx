@@ -16,7 +16,7 @@ export default function CaseTable({ cases, onSelect, selectedId }) {
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
           <tr style={{ borderBottom: "1px solid var(--border)" }}>
-            {["Transaction", "Customer", "Amount", "Failure Reason", "Severity", "Action Taken", "Attempts", "Status", "Time"].map((h) => (
+            {["Transaction", "Customer", "Amount", "Failure Reason", "Severity", "Action Taken", "Attempts", "Status", "Source", "Time"].map((h) => (
               <th
                 key={h}
                 style={{
@@ -66,6 +66,9 @@ export default function CaseTable({ cases, onSelect, selectedId }) {
               <td style={{ padding: "10px 14px", textAlign: "center" }}>{c.attempts_made}</td>
               <td style={{ padding: "10px 14px" }}>
                 <Badge label={STATUS_LABELS[c.final_status] || c.final_status} tone={STATUS_TONE[c.final_status]} />
+              </td>
+              <td style={{ padding: "10px 14px" }}>
+                <Badge label={c.agent_source === "llm" ? "AI" : "Rules"} tone={c.agent_source === "llm" ? "green" : "slate"} />
               </td>
               <td style={{ padding: "10px 14px", color: "var(--text-tertiary)", whiteSpace: "nowrap" }}>
                 {formatDateTime(c.timestamp)}
