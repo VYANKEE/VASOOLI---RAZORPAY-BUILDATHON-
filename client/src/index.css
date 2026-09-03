@@ -1,91 +1,80 @@
-/* ---- Design tokens -------------------------------------------------- */
+/* ============================================================
+   Vasooli — Design System
+   Clean, sophisticated fintech visual language in the spirit of
+   razorpay.com: white/light surfaces, one deliberate blue accent,
+   generous whitespace, crisp shadows instead of glassmorphism, and
+   one editorial serif accent reserved for premium callouts.
+   ============================================================ */
+
 :root {
-  --accent: #3b6ef6;
-  --accent-strong: #2952d4;
-  --accent-soft: rgba(59, 110, 246, 0.12);
-  --accent-soft-border: rgba(59, 110, 246, 0.28);
+  /* Accent: Razorpay-style royal blue — used deliberately, not decoratively */
+  --accent: #305eff;
+  --accent-strong: #305eff;
+  --accent-dim: #1e46d8;
+  --accent-soft: rgba(48, 94, 255, 0.08);
+  --accent-soft-border: rgba(48, 94, 255, 0.22);
 
-  --bg: #f5f6f9;
+  --bg: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-sunken: #eef0f5;
-  --border: #e2e5ec;
-  --border-strong: #cdd2dd;
+  --bg-sunken: #f5f7fb;
+  --bg-inset: #eef1f7;
+  --border: #e4e8f0;
+  --border-strong: #cbd2e0;
 
-  --text-primary: #14161f;
-  --text-secondary: #565c6d;
-  --text-tertiary: #8a90a2;
+  --text-primary: #16202e;
+  --text-secondary: #4b5a6e;
+  --text-tertiary: #869099;
 
-  --green: #16a35b;
-  --green-soft: rgba(22, 163, 91, 0.12);
+  --green: #0e9f6e;
+  --green-soft: rgba(14, 159, 110, 0.1);
   --red: #d8433f;
-  --red-soft: rgba(216, 67, 63, 0.12);
+  --red-soft: rgba(216, 67, 63, 0.1);
   --amber: #b8790f;
-  --amber-soft: rgba(184, 121, 15, 0.14);
+  --amber-soft: rgba(184, 121, 15, 0.12);
   --slate: #5b6472;
-  --slate-soft: rgba(91, 100, 114, 0.12);
+  --slate-soft: rgba(91, 100, 114, 0.1);
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
 
-  --shadow-sm: 0 1px 2px rgba(20, 22, 31, 0.06);
-  --shadow-md: 0 4px 16px rgba(20, 22, 31, 0.08);
-  --shadow-lg: 0 12px 40px rgba(20, 22, 31, 0.16);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 24px 56px rgba(16, 24, 40, 0.12), 0 2px 8px rgba(16, 24, 40, 0.05);
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* TASA Orbiter Display (razorpay.com's real headline face) is a private
+     licensed font — Space Grotesk is the closest open geometric analog.
+     Inter Tight is razorpay.com's actual body face. Instrument Serif is
+     reserved for rare, premium editorial callouts (their "Vulcan" pattern). */
+  --font-display: "Space Grotesk", "Inter Tight", -apple-system, sans-serif;
+  --font-sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0d0e13;
-    --bg-elevated: #16181f;
-    --bg-sunken: #101218;
-    --border: #262933;
-    --border-strong: #34394650;
-
-    --text-primary: #f1f2f6;
-    --text-secondary: #a4a9ba;
-    --text-tertiary: #6c7282;
-
-    --accent-soft: rgba(90, 138, 255, 0.14);
-    --accent-soft-border: rgba(90, 138, 255, 0.32);
-    --accent: #5a8aff;
-    --accent-strong: #7ba1ff;
-
-    --green-soft: rgba(58, 199, 130, 0.14);
-    --green: #3ac782;
-    --red-soft: rgba(240, 100, 96, 0.16);
-    --red: #f06460;
-    --amber-soft: rgba(224, 160, 60, 0.16);
-    --amber: #e0a03c;
-    --slate-soft: rgba(150, 156, 170, 0.14);
-    --slate: #959bab;
-
-    color-scheme: dark;
-  }
-}
-
+/* Light-by-default (deliberate brand choice, matching the sophisticated,
+   high-trust fintech aesthetic this is modeled on) regardless of system
+   theme. An optional dark variant exists below for a future toggle. */
 :root[data-theme="dark"] {
-  --bg: #0d0e13;
-  --bg-elevated: #16181f;
-  --bg-sunken: #101218;
-  --border: #262933;
-  --border-strong: #34394650;
+  --bg: #0b0f16;
+  --bg-elevated: #10141d;
+  --bg-sunken: #0d1119;
+  --bg-inset: #151a24;
+  --border: #232936;
+  --border-strong: #333b4b;
 
-  --text-primary: #f1f2f6;
-  --text-secondary: #a4a9ba;
-  --text-tertiary: #6c7282;
+  --text-primary: #f3f4f7;
+  --text-secondary: #9aa3b4;
+  --text-tertiary: #626b7a;
 
-  --accent-soft: rgba(90, 138, 255, 0.14);
-  --accent-soft-border: rgba(90, 138, 255, 0.32);
-  --accent: #5a8aff;
-  --accent-strong: #7ba1ff;
+  --accent-soft: rgba(48, 94, 255, 0.16);
+  --accent-soft-border: rgba(48, 94, 255, 0.34);
 
-  --green-soft: rgba(58, 199, 130, 0.14);
-  --green: #3ac782;
+  --green-soft: rgba(34, 197, 148, 0.14);
+  --green: #22c594;
   --red-soft: rgba(240, 100, 96, 0.16);
   --red: #f06460;
   --amber-soft: rgba(224, 160, 60, 0.16);
@@ -103,7 +92,11 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -112,26 +105,42 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
+  position: relative;
 }
 
-h1,
-h2,
-h3,
-h4 {
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+h1, h2, h3, h4, h5 {
   margin: 0;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
 }
 
-input,
-select {
+input, select, textarea {
   font-family: inherit;
 }
 
@@ -149,8 +158,232 @@ select {
 
 .mono {
   font-family: var(--font-mono);
+  font-feature-settings: "tnum";
 }
 
 .scroll-x {
   overflow-x: auto;
+}
+
+/* ---- Layout primitives ---- */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+@media (max-width: 720px) {
+  .container {
+    padding: 0 18px;
+  }
+}
+
+/* ---- Reusable surface: a clean elevated card — border + soft shadow,
+   no blur. This is the primary "card" look across the whole product. ---- */
+.surface {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Soft tinted pill / chip (badges, small floating elements) ---- */
+.glass {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+}
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(48, 94, 255, 0.28);
+}
+.btn-primary:hover {
+  background: var(--accent-dim);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(48, 94, 255, 0.36);
+}
+.btn-ghost {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---- Nav link ---- */
+.nav-link {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 8px 4px;
+  transition: color 0.15s ease;
+  position: relative;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--text-primary);
+}
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* ---- Reveal-on-scroll: fade + rise, the "premium scroll" feel ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(34px);
+  filter: blur(5px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+/* Per-word cascade reveal (WordReveal.jsx): each word is its own span,
+   staggered by --i. The parent already carries .reveal and is observed
+   normally, so .in-view on the parent is all it takes to cascade. */
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.5em);
+  filter: blur(6px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--i, 0) * 35ms);
+}
+.reveal.in-view .word {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .word {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* ---- 3D tilt-on-hover for cards (JS sets --rx/--ry per pointer move) ---- */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform 0.15s ease-out, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.tilt:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---- Continuous marquee ticker ---- */
+.marquee {
+  overflow: hidden;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  padding: 16px 0;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee-scroll 30s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 0 28px;
+  position: relative;
+}
+.marquee-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.marquee-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none !important; }
+}
+
+/* ---- Headline accent: navy fading into the brand blue — mirrors
+   razorpay.com's own trick of highlighting one phrase in solid blue
+   against an otherwise dark-navy headline. ---- */
+.text-gradient {
+  background: linear-gradient(100deg, var(--text-primary) 8%, var(--accent) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Editorial serif accent: reserved for one premium callout per page
+   (razorpay.com's "Vulcan" pattern — Instrument Serif italic on a dark
+   full-bleed section). Not for routine headings. ---- */
+.editorial {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* ---- Full-bleed dark section (the one deliberate contrast moment) ---- */
+.section-dark {
+  background: #0e1520;
+  color: #f4f6fa;
+}
+.section-dark .text-gradient {
+  background: linear-gradient(100deg, #ffffff 8%, #7fa1ff 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }

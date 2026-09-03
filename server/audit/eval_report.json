@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T09:21:04.687Z",
+  "generated_at": "2026-09-03T21:57:43.587Z",
   "total_checks": 11,
   "passed": 11,
   "failed": 0,
@@ -47,7 +47,7 @@
     {
       "name": "Total recovered <= total at risk",
       "pass": true,
-      "detail": "₹314824 recovered vs ₹371076 at risk"
+      "detail": "₹298275 recovered vs ₹371076 at risk"
     },
     {
       "name": "No-action cases never show recovered amount",

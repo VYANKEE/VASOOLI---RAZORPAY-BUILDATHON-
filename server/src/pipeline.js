@@ -24,7 +24,8 @@ import { computeMetrics } from "./metrics.js";
 import { mulberry32 } from "./rng.js";
 import { ACTIONS, MAX_ATTEMPTS, enforcePolicy } from "./policy.js";
 import { runLLMTurn } from "./llmAgent.js";
-import { llmEnabled, DEFAULT_MODEL } from "./llmClient.js";
+import { llmEnabled, activeModelLabel } from "./llmClient.js";
+import { startRun, recordCase, finishRun } from "./progress.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = path.join(__dirname, "..", "data", "transactions.json");
@@ -60,7 +61,7 @@ async function agentTurn(txn, attemptNumber, history) {
       return ruleBasedTurn(txn, attemptNumber, history, `llm_call_failed: ${err.message}`);
     }
   }
-  return ruleBasedTurn(txn, attemptNumber, history, "llm_disabled: NVIDIA_API_KEY not set");
+  return ruleBasedTurn(txn, attemptNumber, history, "llm_disabled: no LLM provider configured (GEMINI_API_KEY or NVIDIA_API_KEY)");
 }
 
 function ruleBasedTurn(txn, attemptNumber, history, fallbackReason) {
@@ -204,13 +205,21 @@ async function processTransaction(txn, auditCounterRef) {
 async function runPool(items, worker, concurrency) {
   const results = new Array(items.length);
   let next = 0;
+  let done = 0;
+  const showProgress = llmEnabled();
   async function runner() {
     while (next < items.length) {
       const i = next++;
       results[i] = await worker(items[i], i);
+      done++;
+      recordCase(results[i].caseSummary.final_status);
+      if (showProgress) {
+        process.stdout.write(`\r  Progress: ${done}/${items.length} transactions processed...`);
+      }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, runner));
+  if (showProgress) process.stdout.write("\n");
   return results;
 }
 
@@ -222,9 +231,11 @@ async function runPipeline() {
 
   console.log(
     llmEnabled()
-      ? `LLM mode: ON (NVIDIA NIM, model=${DEFAULT_MODEL}) — running with concurrency ${CONCURRENCY}`
-      : `LLM mode: OFF (NVIDIA_API_KEY not set) — using deterministic rule engine`
+      ? `LLM mode: ON (${activeModelLabel()}) — running with concurrency ${CONCURRENCY}`
+      : `LLM mode: OFF (no GEMINI_API_KEY / NVIDIA_API_KEY set) — using deterministic rule engine`
   );
+
+  startRun(transactions.length, llmEnabled());
 
   const auditCounterRef = { n: 0 };
   const perTxnResults = await runPool(
@@ -233,12 +244,14 @@ async function runPipeline() {
     llmEnabled() ? CONCURRENCY : 1
   );
 
+  finishRun();
+
   const auditEntries = perTxnResults.flatMap((r) => r.auditEntries);
   const caseSummaries = perTxnResults.map((r) => r.caseSummary);
 
   const metrics = computeMetrics(caseSummaries, auditEntries);
   metrics.llm_enabled = llmEnabled();
-  metrics.llm_model = llmEnabled() ? DEFAULT_MODEL : null;
+  metrics.llm_model = llmEnabled() ? activeModelLabel() : null;
   metrics.llm_fallback_count = auditEntries.filter((a) => a.agent_source === "rule_engine" && a.fallback_reason?.startsWith("llm_call_failed")).length;
 
   writeAuditTrail(auditEntries);

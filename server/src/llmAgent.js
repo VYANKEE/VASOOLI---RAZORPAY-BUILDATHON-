@@ -7,7 +7,7 @@
 import { callLLMJSON, llmEnabled } from "./llmClient.js";
 import { ACTIONS } from "./policy.js";
 
-const SYSTEM_PROMPT = `You are the reasoning core of "Recovery Agent", an AI system used by an Indian fintech company to recover revenue from failed payments and abandoned checkouts.
+const SYSTEM_PROMPT = `You are the reasoning core of "Vasooli", an AI system used by an Indian fintech company to recover revenue from failed payments and abandoned checkouts.
 
 For every case you are given the transaction details and the history of recovery attempts already made. You must:
 1. Diagnose the root cause category and severity.
@@ -67,6 +67,7 @@ async function runLLMTurn(txn, attemptNumber, history) {
   const result = await callLLMJSON({
     system: SYSTEM_PROMPT,
     user: buildUserPrompt(txn, attemptNumber, history),
+    maxTokens: 400, // keep responses tight — faster generation, still enough for the JSON verdict
   });
 
   // Basic shape validation — if the model returns garbage, treat it as a failure

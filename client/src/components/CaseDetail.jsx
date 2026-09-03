@@ -13,13 +13,17 @@ const OUTCOME_TONE = {
 export default function CaseDetail({ transactionId, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!transactionId) return;
     setLoading(true);
+    setError(null);
+    setData(null);
     api
       .caseDetail(transactionId)
       .then(setData)
+      .catch((err) => setError(err.message || "Failed to load this case."))
       .finally(() => setLoading(false));
   }, [transactionId]);
 
@@ -70,6 +74,12 @@ export default function CaseDetail({ transactionId, onClose }) {
         </button>
 
         {loading && <div style={{ color: "var(--text-tertiary)", marginTop: 40 }}>Loading case…</div>}
+
+        {error && !loading && (
+          <div style={{ color: "var(--red)", background: "var(--red-soft)", border: "1px solid var(--red)", borderRadius: 8, padding: "12px 14px", marginTop: 24, fontSize: 13.5 }}>
+            Couldn't load this case: {error}
+          </div>
+        )}
 
         {data && (
           <>
@@ -162,7 +172,7 @@ function AuditEntryCard({ entry }) {
 
       {entry.llm_proposed_action && entry.llm_proposed_action !== entry.decision.action && (
         <DetailRow label="AI proposed">
-          <span className="mono" style={{ fontSize: 11.5 }}>{entry.llm_proposed_action}</span> — overridden by policy below
+          <span className="mono" style={{ fontSize: 11.5 }}>{entry.llm_proposed_action}</span> (overridden by policy below)
         </DetailRow>
       )}
 

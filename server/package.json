@@ -1,7 +1,7 @@
 {
-  "name": "recovery-agent-backend",
+  "name": "vasooli-backend",
   "version": "1.0.0",
-  "description": "Recovery Agent backend - detects revenue-at-risk from failed payments, diagnoses root cause, decides & simulates a bounded recovery action, and writes a full audit trail.",
+  "description": "Vasooli backend - detects revenue-at-risk from failed payments, diagnoses root cause, decides & simulates a bounded recovery action, and writes a full audit trail.",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

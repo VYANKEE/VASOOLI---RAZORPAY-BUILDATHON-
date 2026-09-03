@@ -102,7 +102,14 @@ function decideAction(txn, classification, attemptNumber, history) {
       };
     }
     if (txn.amount_inr >= DISCOUNT_MIN_AMOUNT && (severity === "high" || severity === "critical" || txn.is_recurring)) {
-      const pct = txn.is_recurring ? 10 : Math.min(MAX_DISCOUNT_PCT, 10);
+      // Scale the offer with how much is actually at stake, still hard-capped
+      // by policy.js's MAX_DISCOUNT_PCT — a critical, recurring case earns a
+      // bigger nudge than a merely "high" one-off, instead of one flat number.
+      let pct = 8;
+      if (severity === "high") pct += 2;
+      if (severity === "critical") pct += 5;
+      if (txn.is_recurring) pct += 2;
+      pct = Math.min(MAX_DISCOUNT_PCT, pct);
       return {
         action: ACTIONS.DISCOUNT,
         reasoning: `First nudge did not convert. Transaction value (₹${txn.amount_inr}) clears the ₹${DISCOUNT_MIN_AMOUNT} discount floor and severity is ${severity}, so a bounded ${pct}% one-time discount (capped at ${MAX_DISCOUNT_PCT}%) is offered to close the deal. This is a one-time offer — not repeated.`,

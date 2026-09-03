@@ -1,9 +1,9 @@
-# Recovery Agent
+# Vasooli
 
 **AI-powered revenue recovery for failed payments & abandoned checkouts.**
 Built for the Razorpay AI Buildathon — Track 03: AI Revenue Recovery.
 
-Recovery Agent watches a stream of failed/abandoned Indian fintech transactions. For every one, a **real LLM** (via NVIDIA NIM) **diagnoses why it failed** and **recommends a recovery action** — but that recommendation is never executed blindly. A separate, plain-code **policy engine** validates or overrides it against hard compliance limits (max 3 attempts, no spam, capped discounts) before anything is simulated and logged. Every diagnosis, AI recommendation, policy decision, message, and outcome is written to a structured audit trail. An automated **eval suite** then re-checks that trail to mechanically prove the guardrails actually held.
+Vasooli watches a stream of failed/abandoned Indian fintech transactions. For every one, a **real LLM** (Gemini, with NVIDIA NIM supported as an alternative) **diagnoses why it failed** and **recommends a recovery action** — but that recommendation is never executed blindly. A separate, plain-code **policy engine** validates or overrides it against hard compliance limits (max 3 attempts, no spam, capped discounts) before anything is simulated and logged. Every diagnosis, AI recommendation, policy decision, message, and outcome is written to a structured audit trail. An automated **eval suite** re-checks that trail after every run — live, wired into the running server, not a separate offline script — to mechanically prove the guardrails actually held. A **live "try to break a guardrail" demo** lets you feed the real policy engine a deliberately unsafe AI proposal and watch it get caught in real time.
 
 ---
 
@@ -16,7 +16,7 @@ Failed payments and abandoned checkouts are one of the largest silent revenue le
 3. Knowing when **not** to act, and when to stop and hand off to a human.
 4. Being fully auditable — every automated customer-facing action needs a paper trail, and the safety limits need to hold *even if the AI proposes something unsafe*.
 
-Recovery Agent is a working, end-to-end system that does all four.
+Vasooli is a working, end-to-end system that does all four — and it doesn't just claim to; the dashboard shows it happening on every page.
 
 ---
 
@@ -25,14 +25,17 @@ Recovery Agent is a working, end-to-end system that does all four.
 | Layer | What it does |
 |---|---|
 | **Synthetic dataset** | 92 realistic Indian fintech transaction records (UPI/card/netbanking failures, subscription + one-off payments) — `server/data/transactions.json` / `.csv` |
-| **LLM agent** | Calls an NVIDIA NIM-hosted model per attempt to diagnose root cause + severity, recommend an action, and draft the Hinglish message — `server/src/llmAgent.js`, `server/src/llmClient.js` |
+| **LLM agent** | Calls Gemini (or NVIDIA NIM) per attempt to diagnose root cause + severity, recommend an action, and draft the Hinglish message — `server/src/llmAgent.js`, `server/src/llmClient.js`, `server/src/geminiClient.js` |
+| **Independent key/quota per role** | The transaction pipeline and the chatbot assistant can run on two separate Gemini keys/models, so a busy pipeline run never starves the chatbot's quota — `GEMINI_API_KEY_ASSISTANT` in `.env.example` |
 | **Policy engine** | Plain, deterministic code that validates/overrides the AI's recommendation against hard limits — never delegated to the model — `server/src/policy.js` |
 | **Rule-based fallback engine** | If the LLM is unavailable or misbehaves, the same attempt falls back to a fully deterministic classifier + decision table, so the pipeline never stalls — `server/src/classify.js`, `server/src/decide.js`, `server/src/message.js` |
 | **Simulation layer** | Probabilistic (not random) outcome model grounded in action/root-cause/attempt-number — `server/src/simulate.js` |
 | **Audit trail** | Every AI diagnosis, AI recommendation, policy decision (incl. overrides), message, and outcome, for every attempt, written to JSON + CSV — `server/audit/audit_log.json` |
-| **Guardrail evals** | An automated check suite that re-verifies the audit trail actually respected every compliance rule — `server/src/evals.js` → `server/audit/eval_report.json` |
-| **REST API** | Serves metrics, case list (filterable), and per-case audit detail — `server/src/server.js` |
-| **React dashboard** | Fintech-ops-style console: KPIs, charts, searchable audit log, per-case drill-down showing AI vs. rule-engine source and any policy override — `client/` |
+| **Live guardrail evals** | An automated 11-check suite re-verifies the audit trail after every pipeline run — wired directly into the running server (`GET /api/evals`), not a disconnected CLI script, so the dashboard renders the real result, not a hardcoded claim — `server/src/evals.js` |
+| **Guardrail stress test** | An interactive endpoint + UI that feeds the real `enforcePolicy()` function synthetic "the AI proposed something unsafe" scenarios and shows the live override — `server/src/guardrailDemo.js`, `POST /api/guardrail-stress-test` |
+| **Chatbot assistant** | A tool-calling assistant that answers questions about the live run by picking one of four tools, executing it against real in-memory state, and answering only from that result — never from the full dataset in-prompt — `server/src/assistant.js` |
+| **REST API** | Serves metrics, case list (filterable), per-case audit detail, live guardrail evals, guardrail stress-test scenarios, and CSV exports — `server/src/server.js` |
+| **React dashboard** | Fintech-ops-style console: KPIs, charts, searchable audit log, per-case drill-down showing AI vs. rule-engine source and any policy override, plus a landing page that shows the real severity-scoring formula, the real decision playbook, and a real generated customer message — `client/` |
 
 ---
 
@@ -45,7 +48,7 @@ flowchart LR
     end
 
     subgraph "Agent Pipeline (per attempt)"
-        B[LLM Agent\nNVIDIA NIM\ndiagnose + recommend + draft message]
+        B[LLM Agent\nGemini / NVIDIA NIM\ndiagnose + recommend + draft message]
         B2[Rule-Engine Fallback\nif LLM unavailable/fails]
         C[Policy Engine\nvalidate/override:\nmax 3 attempts, no-repeat,\ndiscount caps]
         D[Simulate Execution\nprobabilistic outcome model]
@@ -62,6 +65,7 @@ flowchart LR
     subgraph Serving
         J[REST API\nExpress]
         K[React Dashboard]
+        M[Chatbot Assistant\ntool-calling over live state]
     end
 
     A --> B
@@ -75,7 +79,9 @@ flowchart LR
     G --> L
     H --> J
     I --> J
+    L --> J
     J --> K
+    J --> M
 ```
 
 Every transaction runs through a **bounded agent loop**, attempt by attempt: the LLM (or its rule-based fallback) proposes a diagnosis + action + message → the policy engine approves or overrides it → the action is simulated → the loop continues only while attempts remain and the last action wasn't terminal (escalate / no-action). Each iteration is one audit entry, so a single transaction can produce 1-3 entries — the full negotiation, not just the final outcome.
@@ -98,11 +104,13 @@ Concretely, `policy.js` enforces:
 
 See `TXN20260800054` in the audit log for a case that hits all 3 attempts and is closed gracefully rather than looped forever, and search the audit log for `"overridden_by_policy": true` to see the policy engine actively correcting an AI proposal.
 
+**Don't want to dig through the audit log?** Open the Architecture page in the dashboard and use the **"Try to break a guardrail"** widget — pick a way the AI might misbehave (repeat itself, blow past the attempt cap, invent an action, offer an oversized discount) and watch the real `enforcePolicy()` function catch it, live, on that request.
+
 ---
 
 ## Guardrails are proven, not just claimed
 
-After every pipeline run, `npm run eval` re-reads the audit trail it just produced and mechanically checks 11 compliance properties — not "we designed it to be bounded," but "here is proof, on this exact run, that it was":
+After every pipeline run — including the one the server runs automatically on boot, and every re-run triggered from the dashboard — `evals.js` re-reads the audit trail it just produced and mechanically checks 11 compliance properties, exposed live at `GET /api/evals` and rendered on the dashboard's landing page:
 
 ```
 Guardrail evals: 11/11 passed
@@ -120,7 +128,7 @@ Guardrail evals: 11/11 passed
   ✓ Escalations only occur after a real attempt was made
 ```
 
-Written to `server/audit/eval_report.json`; exits non-zero on any failure so it can gate CI.
+Written to `server/audit/eval_report.json`; `npm run eval` also runs it standalone and exits non-zero on any failure so it can gate CI.
 
 ---
 
@@ -132,11 +140,12 @@ Requires **Node.js 18+**.
 # 1. Backend
 cd server
 npm install
-cp .env.example .env        # then paste your NVIDIA_API_KEY (see below)
-npm run generate            # writes server/data/transactions.{json,csv}
-npm run run-pipeline        # writes server/audit/{audit_log,case_summaries,metrics}.json
-npm run eval                # writes server/audit/eval_report.json
-npm start                   # http://localhost:4000 (also re-runs the pipeline on boot)
+cp .env.example .env        # then paste your GEMINI_API_KEY (see below)
+npm start                   # http://localhost:4000 — runs the pipeline against
+                             # the committed dataset (server/data/), runs evals,
+                             # and starts serving, all on boot
+# (server/data/transactions.json is already checked into the repo; run
+#  `npm run generate` first only if you want a freshly-seeded dataset)
 
 # 2. Frontend — in a second terminal
 cd client
@@ -144,19 +153,20 @@ npm install
 npm run dev                 # http://localhost:5173 (proxies /api to :4000)
 ```
 
-Open **http://localhost:5173** for the dashboard. Click **"↻ Re-run pipeline"** in the top bar to trigger a fresh run live (calls `POST /api/run`).
+Open **http://localhost:5173** for the dashboard. Click **"↻ Re-run pipeline"** on the Console page to trigger a fresh run live (calls `POST /api/run`).
 
 ### Enabling real LLM reasoning
 
-Get a free key at **[build.nvidia.com](https://build.nvidia.com)** — open any model page and click "Get API Key." Put it in `server/.env`:
+Get a free key at **[aistudio.google.com/apikey](https://aistudio.google.com/apikey)**. Put it in `server/.env`:
 
 ```
-NVIDIA_API_KEY=nvapi-your-key-here
-NVIDIA_MODEL=meta/llama-3.1-70b-instruct   # optional, this is the default — swap for
-                                            # any model ID your build.nvidia.com account has access to
+GEMINI_API_KEY=your-gemini-key-here
+GEMINI_MODEL=gemini-3.5-flash-lite   # optional, see .env.example for alternatives
 ```
 
-With no key set, the pipeline runs entirely on the deterministic rule engine — same audit trail shape, same guarantees, just without live model calls. The dashboard's top-right badge always shows which mode produced the current run ("AI-Live · model-name" or "Rule Engine (no LLM key)"), and every audit entry is individually tagged `agent_source: "llm" | "rule_engine"` so a judge can see exactly which cases used which path.
+Optionally set `GEMINI_API_KEY_ASSISTANT` (a second, separate key) so the chatbot's quota never competes with the pipeline's — see `.env.example` for details. NVIDIA NIM (`NVIDIA_API_KEY`) is supported as an alternative provider if you'd rather use that instead of Gemini.
+
+With no key set, the pipeline runs entirely on the deterministic rule engine — same audit trail shape, same guarantees, just without live model calls. `GET /api/health` always reports whether LLM mode is currently enabled and which model, and every audit entry is individually tagged `agent_source: "llm" | "rule_engine"` so a judge can see exactly which cases used which path.
 
 ### API reference
 
@@ -167,47 +177,18 @@ With no key set, the pipeline runs entirely on the deterministic rule engine —
 | `GET /api/cases` | Case list, filterable by `?failure_reason=&severity=&status=&action=&q=` |
 | `GET /api/cases/:transactionId` | One case + its complete audit trail |
 | `GET /api/audit` | Raw audit entries, optional `?transaction_id=` |
+| `GET /api/evals` | Live guardrail eval report for the most recent run |
+| `GET /api/guardrail-scenarios` | List of stress-test scenarios |
+| `POST /api/guardrail-stress-test` | Run one scenario through the real policy engine, live |
+| `POST /api/assistant` | One chatbot turn — tool-calling over live pipeline state |
+| `GET /api/export/cases.csv` / `GET /api/export/audit.csv` | Raw data export |
 | `POST /api/run` | Re-runs the full pipeline (fresh dataset read, fresh simulation) |
-
----
-
-## Sample output
-
-One audit entry (`server/audit/audit_log.json`) from an LLM-mode run, lightly trimmed — note the AI's proposal, the policy engine's independent decision, and the fact that they can differ:
-
-```json
-{
-  "audit_id": "AUD00042",
-  "transaction_id": "TXN20260800017",
-  "customer_name": "Ananya Iyer",
-  "amount_inr": 180,
-  "attempt_number": 1,
-  "agent_source": "llm",
-  "classification": {
-    "root_cause_category": "transient_infra",
-    "severity": "low",
-    "reasoning": "Bank server was down at the time of charge — a one-off infra glitch unrelated to the customer, low value at ₹180."
-  },
-  "llm_proposed_action": "discount_offer",
-  "llm_decision_reasoning": "Offering a small discount to reassure the customer despite the low value.",
-  "decision": {
-    "action": "no_action_needed",
-    "overridden_by_policy": true,
-    "override_reason": "actionability_threshold_policy: amount (₹180) is below the ₹200 floor and non-recurring — a discount/escalation is not cost-justified, withholding action instead.",
-    "reasoning": "actionability_threshold_policy: amount (₹180) is below the ₹200 floor and non-recurring — a discount/escalation is not cost-justified, withholding action instead."
-  },
-  "message": "[No customer-facing message sent] — agent determined outreach is not cost-justified for this case. See reasoning in audit log.",
-  "outcome": { "status": "no_action", "recovered_amount": 0 }
-}
-```
-
-*(Numbers above are illustrative of the override mechanism; run the pipeline with your own key for a live example, or without one to see the same shape from the rule engine.)*
 
 ---
 
 ## Measured results (rule-engine baseline run — nothing here is hand-typed)
 
-Reproduce these exact numbers with `npm run generate && npm run run-pipeline` in `server/` (seeded RNG, deterministic; this baseline has no `NVIDIA_API_KEY` set):
+Reproduce these exact numbers with `npm start` in `server/` (seeded RNG, deterministic; this baseline has no LLM key set):
 
 | Metric | Value |
 |---|---|
@@ -220,7 +201,7 @@ Reproduce these exact numbers with `npm run generate && npm run run-pipeline` in
 | Escalated to human | **10 cases** — exhausted automation, handed off rather than guessed |
 | Guardrail evals | **11/11 passed** |
 
-Breakdowns by failure reason, action-conversion rate, and severity are all computed live and shown as charts on the dashboard. With a live `NVIDIA_API_KEY` set, re-run the pipeline to get an LLM-reasoned version of the same run — the dashboard badge and every audit entry will show `agent_source: "llm"`.
+Breakdowns by failure reason, action-conversion rate, and severity are all computed live and shown as charts on the dashboard. With a live `GEMINI_API_KEY` set, re-run the pipeline to get an LLM-reasoned version of the same run — the dashboard and every audit entry will show `agent_source: "llm"`.
 
 ---
 
@@ -230,36 +211,44 @@ Breakdowns by failure reason, action-conversion rate, and severity are all compu
 - **Per-customer cooldown windows** — currently bounded per-transaction; a production system would also cap total nudges per customer per week across transactions.
 - **A/B testing the decision policy** — compare LLM-recommended actions against the rule-engine baseline on the same dataset to measure the actual lift the model provides, then feed that back into prompt tuning.
 - **Persist to a real database** (Postgres) instead of flat JSON/CSV, with the dashboard reading live instead of from a static pipeline run.
-- **Streaming/webhook-driven outcomes** instead of a one-shot simulation, so "time to recovery" reflects real customer response latency.
+- **Auth + scoped access** — every endpoint here is open with no login, acceptable for a same-day demo but not for the real customer PII (names, amounts) this API currently serves unauthenticated.
 
 ---
 
 ## Repo layout
 
+This is a single repo (monorepo) containing both services — deploy `server/` and `client/` as two separate services pointing at their own subdirectory.
+
 ```
-recovery-agent/
-├── server/                  # Node.js backend
+vasooli/
+├── server/                    # Node.js backend
 │   ├── src/
 │   │   ├── generateDataset.js
-│   │   ├── llmClient.js     # NVIDIA NIM API client
-│   │   ├── llmAgent.js      # LLM diagnosis + recommendation + message prompt
-│   │   ├── policy.js        # hard guardrails — validates/overrides the AI
-│   │   ├── classify.js      # deterministic fallback: root cause + severity
-│   │   ├── decide.js        # deterministic fallback: action selection
-│   │   ├── message.js       # deterministic fallback: Hinglish templates
-│   │   ├── simulate.js      # probabilistic outcome model
-│   │   ├── pipeline.js      # orchestrates the whole agent loop
-│   │   ├── evals.js         # guardrail eval suite
+│   │   ├── geminiClient.js    # Gemini (AI Studio) API client
+│   │   ├── llmClient.js       # provider routing (Gemini / NVIDIA), per-role rate limiting
+│   │   ├── llmAgent.js        # LLM diagnosis + recommendation + message prompt
+│   │   ├── policy.js          # hard guardrails — validates/overrides the AI
+│   │   ├── guardrailDemo.js   # synthetic scenarios for the live stress-test demo
+│   │   ├── classify.js        # deterministic fallback: root cause + severity
+│   │   ├── decide.js          # deterministic fallback: action selection
+│   │   ├── message.js         # deterministic fallback: Hinglish templates
+│   │   ├── simulate.js        # probabilistic outcome model
+│   │   ├── pipeline.js        # orchestrates the whole agent loop
+│   │   ├── evals.js           # guardrail eval suite
+│   │   ├── assistant.js       # chatbot: tool selection + grounded answer
 │   │   ├── metrics.js
 │   │   ├── audit.js
+│   │   ├── progress.js
 │   │   └── server.js
-│   ├── data/                # generated dataset
-│   ├── audit/                # generated audit trail, metrics, eval report
+│   ├── data/                  # generated dataset
+│   ├── audit/                 # generated audit trail, metrics, eval report
 │   └── .env.example
-└── client/                  # React (Vite) dashboard
+└── client/                    # React (Vite) dashboard
     └── src/
         ├── App.jsx
         ├── api.js
         ├── format.js
+        ├── pages/              # Landing, Console, Pipeline, Assistant, Architecture
+        ├── hooks/
         └── components/
 ```
